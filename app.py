@@ -24,30 +24,8 @@ future senior high school enrollments by strand and year level.
 # -------------------------------------
 @st.cache_resource
 def load_model():
-    """Load the trained DecisionTreeRegressor into a pipeline safely."""
-    # Load the trained tree
-    tree = joblib.load("JRU_SHS_DecisionTreeRegressor.joblib")
-
-    # Preprocessor for categorical features
-    preprocessor = ColumnTransformer(
-        transformers=[("cat", OneHotEncoder(handle_unknown="ignore"), ["Strand", "YearLevel"])],
-        remainder="passthrough"
-    )
-
-    # Build pipeline
-    pipeline = Pipeline([
-        ("preprocessor", preprocessor),
-        ("regressor", tree)
-    ])
-
-    # Fit preprocessor on dummy data to generate correct feature structure
-    dummy_df = pd.DataFrame({
-        "Strand": ["STEM", "ABM", "HUMSS", "TVL"],
-        "YearLevel": ["Grade 11", "Grade 12", "Grade 11", "Grade 12"]
-    })
-    pipeline.named_steps["preprocessor"].fit(dummy_df)
-
-    return pipeline
+    # Load the full pipeline directly
+    return joblib.load("JRU_SHS_FullPipeline.joblib")
 
 model = load_model()
 
