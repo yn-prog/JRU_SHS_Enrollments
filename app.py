@@ -20,6 +20,12 @@ plan classrooms, resources, and faculty assignments efficiently.
 # -------------------------------------
 # LOAD MODEL
 # -------------------------------------
+import joblib
+from sklearn.tree import DecisionTreeRegressor
+from sklearn.preprocessing import OneHotEncoder
+from sklearn.compose import ColumnTransformer
+from sklearn.pipeline import Pipeline
+
 @st.cache_resource
 def load_model():
     return joblib.load("JRU_SHS_DecisionTree_Model.joblib")  # your saved model filename
