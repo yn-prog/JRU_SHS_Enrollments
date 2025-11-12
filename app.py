@@ -45,6 +45,13 @@ def load_model():
         ("preprocessor", preprocessor),
         ("regressor", tree)
     ])
+    
+    # Fit preprocessor on a tiny dummy dataset just for feature names
+    dummy_df = pd.DataFrame({
+        "Strand": ["STEM", "ABM", "HUMSS", "TVL"]
+    })
+    model_pipeline.named_steps['preprocessor'].fit(dummy_df)
+    
     return model_pipeline
 
 model = load_model()
