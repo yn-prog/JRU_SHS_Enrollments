@@ -2,17 +2,18 @@ import streamlit as st
 import pandas as pd
 import joblib
 import matplotlib.pyplot as plt
+import seaborn as sns
 from sklearn.tree import plot_tree
 
 # -------------------------------------
 # PAGE CONFIGURATION
 # -------------------------------------
-st.set_page_config(page_title="JRU SHS Enrollment Forecast", page_icon="🎓", layout="centered")
+st.set_page_config(page_title="JRU SHS Enrollment Dashboard", page_icon="🎓", layout="wide")
 
-st.title("🎓 JRU SHS Enrollment Forecasting App")
+st.title("🎓 JRU SHS Enrollment Forecast & Dashboard")
 st.write("""
-Predict past and future senior high school enrollments by strand and year level.
-Upload historical data to visualize trends and make projections.
+This dashboard allows prediction of future enrollment and visualization of past enrollment data.
+Upload historical enrollment CSV to explore trends and distributions.
 """)
 
 # -------------------------------------
@@ -20,97 +21,81 @@ Upload historical data to visualize trends and make projections.
 # -------------------------------------
 @st.cache_resource
 def load_model():
-    pipeline = joblib.load("JRU_SHS_DecisionTree_FullPipeline.joblib")
-    return pipeline
+    return joblib.load("JRU_SHS_DecisionTree_FullPipeline.joblib")
 
 model = load_model()
 
 # -------------------------------------
 # CSV UPLOAD
 # -------------------------------------
-st.subheader("📁 Upload Historical Enrollment Data (Optional)")
-uploaded_file = st.file_uploader("Upload CSV", type=["csv"])
+st.sidebar.subheader("Upload Historical Dataset")
+uploaded_file = st.sidebar.file_uploader("Upload CSV", type=["csv"])
 
 historical_df = None
-if uploaded_file is not None:
-    historical_df = pd.read_csv(uploaded_file)
-    st.success("✅ File uploaded successfully!")
-    
-    # Preprocess dates if available
-    if "DateEnrolled" in historical_df.columns:
-        historical_df["Year"] = pd.to_datetime(historical_df["DateEnrolled"]).dt.year
+if uploaded_file:
+    historical_df = pd.read_csv(uploaded_file, parse_dates=["DateEnrolled", "Birthdate"])
+    st.sidebar.success("✅ File uploaded successfully!")
 
 # -------------------------------------
 # USER INPUT
 # -------------------------------------
-st.subheader("🧮 Input Details")
+st.subheader("🧮 Predict Future Enrollment")
 strand = st.selectbox("Select Strand:", ["STEM", "ABM", "HUMSS", "TVL"])
 year_level = st.selectbox("Select Year Level:", ["Grade 11", "Grade 12"])
-projection_years = st.slider("Select number of years to project:", 1, 5, 3, step=1)
-
-gender_split = st.checkbox("Show male/female split?", value=True)
+projection_years = st.slider("Number of years to project:", 1, 5, 3)
 
 # -------------------------------------
-# PREDICTION AND VISUALIZATION
+# PREDICTION
 # -------------------------------------
-if st.button("🔮 Show Enrollment Trends"):
-    try:
-        # --- Historical visualization ---
-        fig, ax = plt.subplots(figsize=(10, 5))
-        years = []
-        past_enrollments = []
+if st.button("🔮 Predict Enrollment"):
+    current_year = 2025
+    years = [current_year + i for i in range(projection_years)]
+    predictions = []
 
-        if historical_df is not None:
-            filtered = historical_df[
-                (historical_df["Strand"] == strand) &
-                (historical_df["YearLevel"] == year_level)
-            ]
-            if "Year" in filtered.columns:
-                historical_counts = filtered.groupby("Year").size().sort_index()
-                years = historical_counts.index.tolist()
-                past_enrollments = historical_counts.values.tolist()
-                ax.plot(years, past_enrollments, marker='o', linestyle='-', color="#4B9CD3", label="Past")
+    for y in years:
+        input_df = pd.DataFrame({"YearLevel": [year_level], "Strand": [strand]})
+        pred = model.predict(input_df)[0]
+        predictions.append(pred)
 
-        # --- Future projections ---
-        current_year = 2025 if len(years) == 0 else max(years) + 1
-        proj_years = [current_year + i for i in range(projection_years)]
-        predictions = []
+    df_proj = pd.DataFrame({"Year": years, "Predicted Enrollment": predictions})
+    st.subheader("📊 Projected Enrollment")
+    st.table(df_proj)
 
-        for y in proj_years:
-            input_df = pd.DataFrame({"YearLevel": [year_level], "Strand": [strand]})
-            pred = model.predict(input_df)[0]
-            predictions.append(pred)
-
-        ax.plot(proj_years, predictions, marker='o', linestyle='--', color="#FF7F0E", label="Projected")
-        ax.set_title(f"Enrollment Trends for {strand} ({year_level})")
-        ax.set_xlabel("Year")
-        ax.set_ylabel("Number of Students")
-        ax.legend()
-        ax.grid(True)
-        st.pyplot(fig)
-
-        # Optional gender breakdown
-        if gender_split:
-            st.info("Assuming 50/50 male/female split for projection")
-            df_proj = pd.DataFrame({
-                "Year": proj_years,
-                "Total": predictions,
-                "Male": [p * 0.5 for p in predictions],
-                "Female": [p * 0.5 for p in predictions]
-            })
-            st.subheader("Projected Enrollment Details")
-            st.table(df_proj)
-
-    except Exception as e:
-        st.error(f"⚠️ Failed to generate trends: {e}")
-
-# -------------------------------------
-# DECISION TREE VISUALIZATION
-# -------------------------------------
-st.divider()
-with st.expander("🌳 Show Decision Tree Visualization"):
-    st.write("Decision Tree splits for the model predictions:")
-    tree_model = model.named_steps["regressor"]
-    fig, ax = plt.subplots(figsize=(20, 10))
-    plot_tree(tree_model, filled=True, rounded=True, fontsize=10, ax=ax)
+    # Line chart
+    fig, ax = plt.subplots(figsize=(8, 5))
+    ax.plot(years, predictions, marker='o', color="#4B9CD3")
+    ax.set_title(f"Projected Enrollment for {strand} ({year_level})")
+    ax.set_xlabel("Year")
+    ax.set_ylabel("Number of Students")
+    ax.grid(True)
     st.pyplot(fig)
+
+# -------------------------------------
+# HISTORICAL DATA VISUALIZATION
+# -------------------------------------
+if historical_df is not None:
+    st.subheader("📈 Historical Enrollment Data")
+
+    # Total enrollment by year
+    historical_df['Year'] = historical_df['DateEnrolled'].dt.year
+    enroll_by_year = historical_df.groupby('Year').size().reset_index(name='Enrollment')
+    st.line_chart(enroll_by_year.set_index('Year'))
+
+    # Strand distribution
+    st.subheader("Strand Distribution")
+    fig, ax = plt.subplots(figsize=(8,5))
+    sns.countplot(data=historical_df, x='Strand', palette="pastel", order=historical_df['Strand'].value_counts().index)
+    ax.set_title("Enrollment by Strand")
+    st.pyplot(fig)
+
+    # Gender distribution
+    st.subheader("Gender Distribution")
+    fig, ax = plt.subplots(figsize=(6, 4))
+    historical_df['Gender'].value_counts().plot(kind='pie', autopct='%1.1f%%', colors=["#87CEFA","#FFB6C1"])
+    plt.ylabel("")
+    st.pyplot(fig)
+
+    # Optional: Year vs Strand stacked bar chart
+    st.subheader("Year vs Strand Enrollment")
+    year_strand = historical_df.groupby(['Year', 'Strand']).size().unstack(fill_value=0)
+    st.bar_chart(year_strand)
