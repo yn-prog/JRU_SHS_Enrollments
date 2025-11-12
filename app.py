@@ -18,10 +18,6 @@ st.write("""
 Predict future senior high school enrollments by strand and year level.
 """)
 
-import sklearn, joblib
-st.write("scikit-learn version:", sklearn.__version__)
-st.write("joblib version:", joblib.__version__)
-
 # -------------------------------------
 # LOAD PIPELINE
 # -------------------------------------
