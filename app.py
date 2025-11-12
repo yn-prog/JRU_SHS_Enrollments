@@ -38,7 +38,7 @@ preprocessor = ColumnTransformer(
 @st.cache_resource
 def load_model():
     # Load the trained tree
-    tree = joblib.load("dt_model_only.joblib")
+    tree = joblib.load("JRU_SHS_DecisionTreeRegressor.joblib")
     
     # Rebuild full pipeline
     model_pipeline = Pipeline([
