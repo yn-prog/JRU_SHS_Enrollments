@@ -25,13 +25,29 @@ from sklearn.tree import DecisionTreeRegressor
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
+import streamlit as st
+
+# Define preprocessing exactly like in Colab
+preprocessor = ColumnTransformer(
+    transformers=[
+        ('cat', OneHotEncoder(handle_unknown='ignore'), ['Strand'])
+    ],
+    remainder='passthrough'
+)
 
 @st.cache_resource
 def load_model():
-    return joblib.load("JRU_SHS_DecisionTree_Model.joblib")  # your saved model filename
+    # Load the trained tree
+    tree = joblib.load("dt_model_only.joblib")
+    
+    # Rebuild full pipeline
+    model_pipeline = Pipeline([
+        ("preprocessor", preprocessor),
+        ("regressor", tree)
+    ])
+    return model_pipeline
 
 model = load_model()
-
 # -------------------------------------
 # USER INPUT SECTION
 # -------------------------------------
