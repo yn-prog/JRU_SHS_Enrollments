@@ -24,34 +24,30 @@ future senior high school enrollments by strand and year level.
 # -------------------------------------
 @st.cache_resource
 def load_model():
-    """
-    Load the pipeline safely in Streamlit:
-    - Rebuild pipeline manually
-    - Fit preprocessor on dummy data for feature names
-    - Load only the trained tree into the pipeline
-    """
-    # Load the trained DecisionTreeRegressor
+    """Load the trained DecisionTreeRegressor into a pipeline safely."""
+    # Load the trained tree
     tree = joblib.load("JRU_SHS_DecisionTreeRegressor.joblib")
 
-    # Define preprocessor like in training
+    # Preprocessor for categorical features
     preprocessor = ColumnTransformer(
-        transformers=[
-            ("cat", OneHotEncoder(handle_unknown="ignore"), ["Strand"])
-        ],
+        transformers=[("cat", OneHotEncoder(handle_unknown="ignore"), ["Strand", "YearLevel"])],
         remainder="passthrough"
     )
 
-    # Rebuild pipeline
-    model_pipeline = Pipeline([
+    # Build pipeline
+    pipeline = Pipeline([
         ("preprocessor", preprocessor),
         ("regressor", tree)
     ])
 
-    # Fit preprocessor on dummy data (only needed for get_feature_names_out)
-    dummy_df = pd.DataFrame({"Strand": ["STEM", "ABM", "HUMSS", "TVL"]})
-    model_pipeline.named_steps["preprocessor"].fit(dummy_df)
+    # Fit preprocessor on dummy data to generate correct feature structure
+    dummy_df = pd.DataFrame({
+        "Strand": ["STEM", "ABM", "HUMSS", "TVL"],
+        "YearLevel": ["Grade 11", "Grade 12", "Grade 11", "Grade 12"]
+    })
+    pipeline.named_steps["preprocessor"].fit(dummy_df)
 
-    return model_pipeline
+    return pipeline
 
 model = load_model()
 
@@ -99,11 +95,10 @@ if st.button("🔮 Predict Enrollment"):
 st.divider()
 with st.expander("🌳 Show Decision Tree Visualization"):
     st.write("This diagram represents how the model splits data to make predictions.")
-    
-    tree_model = model.named_steps['regressor']
-    
-    # Simply omit feature_names to avoid IndexError
+
+    tree_model = model.named_steps["regressor"]
+
+    # Avoid feature_names to prevent IndexError
     fig, ax = plt.subplots(figsize=(20, 10))
     plot_tree(tree_model, filled=True, rounded=True, fontsize=10, ax=ax)
     st.pyplot(fig)
-
