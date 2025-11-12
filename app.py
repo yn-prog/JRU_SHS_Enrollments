@@ -2,30 +2,32 @@ import streamlit as st
 import pandas as pd
 import joblib
 import matplotlib.pyplot as plt
-from sklearn.tree import plot_tree
-from sklearn.tree import DecisionTreeRegressor
+
+from sklearn.tree import DecisionTreeRegressor, plot_tree
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
 
 # -------------------------------------
-# PAGE CONFIGURATION
+# PAGE CONFIG
 # -------------------------------------
 st.set_page_config(page_title="JRU SHS Enrollment Forecast", page_icon="🎓", layout="centered")
 
-st.title("🎓 Jose Rizal University SHS Enrollment Forecasting App")
+st.title("🎓 JRU SHS Enrollment Forecasting App")
 st.write("""
-This application leverages **Machine Learning (Decision Tree Regressor)** to predict 
-future senior high school enrollments by strand and year level.
+Predict future senior high school enrollments by strand and year level.
 """)
 
 # -------------------------------------
-# LOAD MODEL
+# LOAD PIPELINE
 # -------------------------------------
 @st.cache_resource
 def load_model():
-    # Load the full pipeline directly
-    return joblib.load("JRU_SHS_DecisionTree_FullPipeline.joblib")
+    """
+    Load the full pipeline (preprocessor + DecisionTreeRegressor)
+    """
+    pipeline = joblib.load("JRU_SHS_DecisionTree_FullPipeline.joblib")
+    return pipeline
 
 model = load_model()
 
@@ -37,24 +39,22 @@ year_level = st.selectbox("Select Year Level:", ["Grade 11", "Grade 12"])
 strand = st.selectbox("Select Strand:", ["STEM", "ABM", "HUMSS", "TVL"])
 gender_ratio = st.slider("Estimated Male Student Percentage:", 0, 100, 50, step=5)
 
-input_df = pd.DataFrame({
-    "YearLevel": [year_level],
-    "Strand": [strand]
-})
+input_df = pd.DataFrame({"YearLevel": [year_level], "Strand": [strand]})
 
 # -------------------------------------
 # PREDICTION
 # -------------------------------------
 if st.button("🔮 Predict Enrollment"):
     try:
+        # Transform input using pipeline, then predict
         prediction = model.predict(input_df)[0]
 
         male_pred = prediction * (gender_ratio / 100)
         female_pred = prediction - male_pred
 
-        st.success(f"📊 **Predicted Total Enrollment:** {int(prediction)} students")
-        st.write(f"👦 **Estimated Male Students:** {int(male_pred)}")
-        st.write(f"👧 **Estimated Female Students:** {int(female_pred)}")
+        st.success(f"📊 Predicted Total Enrollment: {int(prediction)} students")
+        st.write(f"👦 Estimated Male Students: {int(male_pred)}")
+        st.write(f"👧 Estimated Female Students: {int(female_pred)}")
 
         # Plot bar chart
         fig, ax = plt.subplots(figsize=(6, 4))
@@ -72,11 +72,11 @@ if st.button("🔮 Predict Enrollment"):
 # -------------------------------------
 st.divider()
 with st.expander("🌳 Show Decision Tree Visualization"):
-    st.write("This diagram represents how the model splits data to make predictions.")
+    st.write("Decision Tree splits for the model predictions:")
 
     tree_model = model.named_steps["regressor"]
 
-    # Avoid feature_names to prevent IndexError
+    # omit feature_names to avoid IndexError
     fig, ax = plt.subplots(figsize=(20, 10))
     plot_tree(tree_model, filled=True, rounded=True, fontsize=10, ax=ax)
     st.pyplot(fig)
