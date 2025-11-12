@@ -11,8 +11,8 @@ st.set_page_config(page_title="JRU SHS Enrollment Forecast", page_icon="🎓", l
 
 st.title("🎓 JRU SHS Enrollment Forecasting App")
 st.write("""
-Predict future senior high school enrollments by strand and year level.
-This helps the university plan classrooms, faculty, and resources efficiently.
+Predict past and future senior high school enrollments by strand and year level.
+Upload historical data to visualize trends and make projections.
 """)
 
 # -------------------------------------
@@ -20,11 +20,25 @@ This helps the university plan classrooms, faculty, and resources efficiently.
 # -------------------------------------
 @st.cache_resource
 def load_model():
-    """Load the full pipeline (preprocessor + DecisionTreeRegressor)"""
     pipeline = joblib.load("JRU_SHS_DecisionTree_FullPipeline.joblib")
     return pipeline
 
 model = load_model()
+
+# -------------------------------------
+# CSV UPLOAD
+# -------------------------------------
+st.subheader("📁 Upload Historical Enrollment Data (Optional)")
+uploaded_file = st.file_uploader("Upload CSV", type=["csv"])
+
+historical_df = None
+if uploaded_file is not None:
+    historical_df = pd.read_csv(uploaded_file)
+    st.success("✅ File uploaded successfully!")
+    
+    # Preprocess dates if available
+    if "DateEnrolled" in historical_df.columns:
+        historical_df["Year"] = pd.to_datetime(historical_df["DateEnrolled"]).dt.year
 
 # -------------------------------------
 # USER INPUT
@@ -37,57 +51,66 @@ projection_years = st.slider("Select number of years to project:", 1, 5, 3, step
 gender_split = st.checkbox("Show male/female split?", value=True)
 
 # -------------------------------------
-# PREDICTION
+# PREDICTION AND VISUALIZATION
 # -------------------------------------
-if st.button("🔮 Predict Enrollment"):
+if st.button("🔮 Show Enrollment Trends"):
     try:
-        # Create projection dataframe
-        current_year = 2025  # starting year
-        years = [current_year + i for i in range(projection_years)]
+        # --- Historical visualization ---
+        fig, ax = plt.subplots(figsize=(10, 5))
+        years = []
+        past_enrollments = []
+
+        if historical_df is not None:
+            filtered = historical_df[
+                (historical_df["Strand"] == strand) &
+                (historical_df["YearLevel"] == year_level)
+            ]
+            if "Year" in filtered.columns:
+                historical_counts = filtered.groupby("Year").size().sort_index()
+                years = historical_counts.index.tolist()
+                past_enrollments = historical_counts.values.tolist()
+                ax.plot(years, past_enrollments, marker='o', linestyle='-', color="#4B9CD3", label="Past")
+
+        # --- Future projections ---
+        current_year = 2025 if len(years) == 0 else max(years) + 1
+        proj_years = [current_year + i for i in range(projection_years)]
         predictions = []
 
-        for y in years:
+        for y in proj_years:
             input_df = pd.DataFrame({"YearLevel": [year_level], "Strand": [strand]})
             pred = model.predict(input_df)[0]
             predictions.append(pred)
 
-        # Display table
-        df_proj = pd.DataFrame({
-            "Year": years,
-            "Predicted Enrollment": predictions
-        })
-        st.subheader("📊 Projected Enrollment")
-        st.table(df_proj)
-
-        # Plot line chart
-        fig, ax = plt.subplots(figsize=(8, 5))
-        ax.plot(years, predictions, marker='o', linestyle='-', color="#4B9CD3", label="Total")
-        ax.set_title(f"Projected Enrollment for {strand} ({year_level})")
+        ax.plot(proj_years, predictions, marker='o', linestyle='--', color="#FF7F0E", label="Projected")
+        ax.set_title(f"Enrollment Trends for {strand} ({year_level})")
         ax.set_xlabel("Year")
         ax.set_ylabel("Number of Students")
-        ax.set_xticks(years)
+        ax.legend()
         ax.grid(True)
-
-        if gender_split:
-            male = [p * 0.5 for p in predictions]  # assume 50/50 split if not known
-            female = [p - m for p, m in zip(predictions, male)]
-            ax.fill_between(years, 0, male, color="#87CEFA", alpha=0.6, label="Male")
-            ax.fill_between(years, male, predictions, color="#FFB6C1", alpha=0.6, label="Female")
-            ax.legend()
-
         st.pyplot(fig)
 
+        # Optional gender breakdown
+        if gender_split:
+            st.info("Assuming 50/50 male/female split for projection")
+            df_proj = pd.DataFrame({
+                "Year": proj_years,
+                "Total": predictions,
+                "Male": [p * 0.5 for p in predictions],
+                "Female": [p * 0.5 for p in predictions]
+            })
+            st.subheader("Projected Enrollment Details")
+            st.table(df_proj)
+
     except Exception as e:
-        st.error(f"⚠️ Prediction failed: {e}")
+        st.error(f"⚠️ Failed to generate trends: {e}")
 
 # -------------------------------------
 # DECISION TREE VISUALIZATION
 # -------------------------------------
 st.divider()
 with st.expander("🌳 Show Decision Tree Visualization"):
-    st.write("This diagram shows how the model splits features to make predictions.")
+    st.write("Decision Tree splits for the model predictions:")
     tree_model = model.named_steps["regressor"]
-
     fig, ax = plt.subplots(figsize=(20, 10))
     plot_tree(tree_model, filled=True, rounded=True, fontsize=10, ax=ax)
     st.pyplot(fig)
