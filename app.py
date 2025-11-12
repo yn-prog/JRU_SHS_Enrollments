@@ -25,7 +25,7 @@ future senior high school enrollments by strand and year level.
 @st.cache_resource
 def load_model():
     # Load the full pipeline directly
-    return joblib.load("JRU_SHS_FullPipeline.joblib")
+    return joblib.load("JRU_SHS_DecisionTree_FullPipeline.joblib")
 
 model = load_model()
 
