@@ -37,24 +37,12 @@ preprocessor = ColumnTransformer(
 
 @st.cache_resource
 def load_model():
-    # Load the trained tree
-    tree = joblib.load("JRU_SHS_DecisionTreeRegressor.joblib")
-    
-    # Rebuild full pipeline
-    model_pipeline = Pipeline([
-        ("preprocessor", preprocessor),
-        ("regressor", tree)
-    ])
-    
-    # Fit preprocessor on a tiny dummy dataset just for feature names
-    dummy_df = pd.DataFrame({
-        "Strand": ["STEM", "ABM", "HUMSS", "TVL"]
-    })
-    model_pipeline.named_steps['preprocessor'].fit(dummy_df)
-    
+    # Load the entire fitted pipeline
+    model_pipeline = joblib.load("JRU_SHS_DecisionTree_Pipeline.joblib")
     return model_pipeline
 
 model = load_model()
+
 # -------------------------------------
 # USER INPUT SECTION
 # -------------------------------------
