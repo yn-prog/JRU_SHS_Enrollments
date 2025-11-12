@@ -98,10 +98,12 @@ if st.button("🔮 Predict Enrollment"):
 # -------------------------------------
 st.divider()
 with st.expander("🌳 Show Decision Tree Visualization"):
-    tree_model = model.named_steps["regressor"]
-    feature_names = model.named_steps["preprocessor"].get_feature_names_out()
-
+    st.write("This diagram represents how the model splits data to make predictions.")
+    
+    tree_model = model.named_steps['regressor']
+    
+    # Simply omit feature_names to avoid IndexError
     fig, ax = plt.subplots(figsize=(20, 10))
-    plot_tree(tree_model, filled=True, feature_names=feature_names,
-              rounded=True, fontsize=10)
+    plot_tree(tree_model, filled=True, rounded=True, fontsize=10, ax=ax)
     st.pyplot(fig)
+
