@@ -5,60 +5,76 @@ import matplotlib.pyplot as plt
 from sklearn.tree import plot_tree
 
 # -------------------------------------
-# PAGE CONFIG
+# PAGE CONFIGURATION
 # -------------------------------------
 st.set_page_config(page_title="JRU SHS Enrollment Forecast", page_icon="🎓", layout="centered")
 
 st.title("🎓 JRU SHS Enrollment Forecasting App")
 st.write("""
-Predict future senior high school enrollments at JRU by strand and year level.
-This helps plan classrooms, teachers, and other resources efficiently.
+Predict future senior high school enrollments by strand and year level.
+This helps the university plan classrooms, faculty, and resources efficiently.
 """)
 
 # -------------------------------------
 # LOAD PIPELINE
 # -------------------------------------
 @st.cache_resource
-def load_pipeline():
-    """Load the trained full pipeline: preprocessor + DecisionTreeRegressor"""
+def load_model():
+    """Load the full pipeline (preprocessor + DecisionTreeRegressor)"""
     pipeline = joblib.load("JRU_SHS_DecisionTree_FullPipeline.joblib")
     return pipeline
 
-model = load_pipeline()
+model = load_model()
 
 # -------------------------------------
 # USER INPUT
 # -------------------------------------
-st.subheader("🧮 Input Enrollment Details")
-year_level = st.selectbox("Select Year Level:", ["Grade 11", "Grade 12"])
+st.subheader("🧮 Input Details")
 strand = st.selectbox("Select Strand:", ["STEM", "ABM", "HUMSS", "TVL"])
-gender_ratio = st.slider("Estimated Male Student Percentage:", 0, 100, 50, step=5)
+year_level = st.selectbox("Select Year Level:", ["Grade 11", "Grade 12"])
+projection_years = st.slider("Select number of years to project:", 1, 5, 3, step=1)
 
-# Prepare input for the model
-input_df = pd.DataFrame({"YearLevel": [year_level], "Strand": [strand]})
+gender_split = st.checkbox("Show male/female split?", value=True)
 
 # -------------------------------------
 # PREDICTION
 # -------------------------------------
 if st.button("🔮 Predict Enrollment"):
     try:
-        # Predict total enrollment using the trained model
-        total_students = model.predict(input_df)[0]
+        # Create projection dataframe
+        current_year = 2025  # starting year
+        years = [current_year + i for i in range(projection_years)]
+        predictions = []
 
-        # Calculate male/female split for visualization only
-        male_students = total_students * (gender_ratio / 100)
-        female_students = total_students - male_students
+        for y in years:
+            input_df = pd.DataFrame({"YearLevel": [year_level], "Strand": [strand]})
+            pred = model.predict(input_df)[0]
+            predictions.append(pred)
 
-        st.success(f"📊 Predicted Total Enrollment: {int(total_students)} students")
-        st.write(f"👦 Estimated Male Students: {int(male_students)}")
-        st.write(f"👧 Estimated Female Students: {int(female_students)}")
+        # Display table
+        df_proj = pd.DataFrame({
+            "Year": years,
+            "Predicted Enrollment": predictions
+        })
+        st.subheader("📊 Projected Enrollment")
+        st.table(df_proj)
 
-        # Bar chart for visualization
-        fig, ax = plt.subplots(figsize=(6, 4))
-        ax.bar(["Total", "Male", "Female"], [total_students, male_students, female_students],
-               color=["#4B9CD3", "#87CEFA", "#FFB6C1"])
-        plt.title(f"Predicted Enrollment for {strand} ({year_level})")
-        plt.ylabel("Number of Students")
+        # Plot line chart
+        fig, ax = plt.subplots(figsize=(8, 5))
+        ax.plot(years, predictions, marker='o', linestyle='-', color="#4B9CD3", label="Total")
+        ax.set_title(f"Projected Enrollment for {strand} ({year_level})")
+        ax.set_xlabel("Year")
+        ax.set_ylabel("Number of Students")
+        ax.set_xticks(years)
+        ax.grid(True)
+
+        if gender_split:
+            male = [p * 0.5 for p in predictions]  # assume 50/50 split if not known
+            female = [p - m for p, m in zip(predictions, male)]
+            ax.fill_between(years, 0, male, color="#87CEFA", alpha=0.6, label="Male")
+            ax.fill_between(years, male, predictions, color="#FFB6C1", alpha=0.6, label="Female")
+            ax.legend()
+
         st.pyplot(fig)
 
     except Exception as e:
@@ -68,11 +84,10 @@ if st.button("🔮 Predict Enrollment"):
 # DECISION TREE VISUALIZATION
 # -------------------------------------
 st.divider()
-with st.expander("🌳 Show Decision Tree Structure"):
-    st.write("This shows how the model splits features to predict total enrollment.")
+with st.expander("🌳 Show Decision Tree Visualization"):
+    st.write("This diagram shows how the model splits features to make predictions.")
     tree_model = model.named_steps["regressor"]
 
     fig, ax = plt.subplots(figsize=(20, 10))
-    # Omit feature_names to prevent IndexError if preprocessing changes number of features
     plot_tree(tree_model, filled=True, rounded=True, fontsize=10, ax=ax)
     st.pyplot(fig)
