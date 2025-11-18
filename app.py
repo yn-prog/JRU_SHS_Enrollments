@@ -73,7 +73,10 @@ if st.button("✨ Predict Enrollment"):
     future_years = [current_year + i for i in range(projection_years)]
 
     # model expects ONLY the features used in training: Strand
-    df_input = pd.DataFrame({"Strand": [strand]})
+    df_input = pd.DataFrame({
+    "YearLevel": ["Placeholder"], 
+    "Strand": [strand]
+    })
 
     # Each future year gets the same prediction (model is strand-based only)
     pred_value = model.predict(df_input)[0]
