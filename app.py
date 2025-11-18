@@ -61,37 +61,42 @@ st.subheader("🔮 Predict Next Year's Enrollment")
 
 strand = st.selectbox("Select Strand:", all_strands)
 
+# The model WAS trained with numeric YearLevel (1 or 2)
+year_level = st.selectbox("Select Year Level:", [1, 2])
+
 if st.button("✨ Predict Next Year"):
     
     next_year = 2026  # Dataset year is 2024-2025
 
-    # Model received only Strand + YearLevel during training
+    # ---------------------------------------------------------
+    # CORRECT INPUT TO MATCH TRAINING DATA
+    # ---------------------------------------------------------
     input_df = pd.DataFrame({
-        "YearLevel": ["Placeholder"],   # irrelevant for your model
+        "YearLevel": [year_level],   
         "Strand": [strand]
     })
 
     # Model prediction
     predicted_value = model.predict(input_df)[0]
 
-    st.write(f"## 🔮 Prediction for {strand} in {next_year}: **{predicted_value:.0f} students**")
+    st.write(f"## 🔮 Prediction for {strand} (Year Level {year_level}) in {next_year}: **{predicted_value:.0f} students**")
 
     # ---------------------------------------------------------
     # CURRENT ENROLLMENT (from uploaded CSV)
     # ---------------------------------------------------------
     if historical_df is not None:
 
-        current_count = historical_df[historical_df["Strand"] == strand].shape[0]
+        current_count = historical_df[
+            (historical_df["Strand"] == strand) &
+            (historical_df["YearLevel"] == year_level)
+        ].shape[0]
 
-        st.write(f"### 📍 Current Enrollment ({strand}): **{current_count} students**")
+        st.write(f"### 📍 Current Enrollment ({strand}, YearLevel {year_level}): **{current_count} students**")
 
         # Comparison chart
         fig, ax = plt.subplots(figsize=(5, 4))
-        bars = ax.bar(
-            ["Current", "Predicted Next Year"],
-            [current_count, predicted_value]
-        )
-        ax.set_title(f"Current vs Next Year Prediction\n({strand})")
+        ax.bar(["Current", "Predicted Next Year"], [current_count, predicted_value])
+        ax.set_title(f"Current vs Next Year Prediction\n({strand}, YearLevel {year_level})")
         ax.set_ylabel("Number of Students")
         st.pyplot(fig)
 
