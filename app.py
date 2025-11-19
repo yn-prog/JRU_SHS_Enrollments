@@ -1,11 +1,9 @@
-import streamlit as st 
+import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-from sklearn.tree import DecisionTreeRegressor, plot_tree
-from sklearn.preprocessing import OneHotEncoder
-from sklearn.compose import ColumnTransformer
-from sklearn.pipeline import Pipeline
+import joblib
+from sklearn.tree import plot_tree
 
 # ---------------------------------------------------------
 # PAGE CONFIG
@@ -59,6 +57,17 @@ This dashboard introduces a **data-driven forecasting system** that predicts the
 """, unsafe_allow_html=True)
 
 # ---------------------------------------------------------
+# LOAD PIPELINE
+# ---------------------------------------------------------
+@st.cache_resource
+def load_model():
+    """Load the full pipeline (preprocessor + DecisionTreeRegressor)"""
+    pipeline = joblib.load("JRU_SHS_DecisionTree_FullPipeline.joblib")
+    return pipeline
+
+model = load_model()
+
+# ---------------------------------------------------------
 # PREDICTIONS
 # ---------------------------------------------------------
 predictions = {
@@ -75,13 +84,10 @@ predictions = {
 
 all_strands = list(predictions.keys())
 
-# ---------------------------------------------------------
-# DIVIDER
-# ---------------------------------------------------------
 st.divider()
 
 # ---------------------------------------------------------
-# PREDICTION SECTION (TOP BOX)
+# PREDICTION SECTION
 # ---------------------------------------------------------
 with st.container():
     st.subheader("🔮 Predict Next Year's Enrollment")
@@ -100,7 +106,7 @@ with st.container():
         """, unsafe_allow_html=True)
 
 # ---------------------------------------------------------
-# DECISION TREE VISUALIZATION 
+# DECISION TREE VISUALIZATION
 # ---------------------------------------------------------
 st.divider()
 with st.expander("🌳 Show Decision Tree Visualization"):
@@ -111,12 +117,15 @@ with st.expander("🌳 Show Decision Tree Visualization"):
     plot_tree(tree_model, filled=True, rounded=True, fontsize=10, ax=ax)
     st.pyplot(fig)
 
-    # ---------------------------------------------------------
-    # HISTORICAL VISUALIZATION (WHEN CSV IS UPLOADED)
-    # ---------------------------------------------------------
-    st.divider()
-    st.subheader("📈 Historical Enrollment Dashboard")
+# ---------------------------------------------------------
+# HISTORICAL VISUALIZATION (REQUIRES CSV UPLOAD)
+# ---------------------------------------------------------
+st.divider()
+st.subheader("📈 Historical Enrollment Dashboard")
+uploaded_file = st.file_uploader("Upload historical enrollment CSV", type=["csv"])
 
+if uploaded_file:
+    df_tree = pd.read_csv(uploaded_file, parse_dates=["DateEnrolled"])
     df_tree["Year"] = df_tree["DateEnrolled"].dt.year
 
     # Enrollment Count by Year
