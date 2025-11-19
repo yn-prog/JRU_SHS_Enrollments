@@ -2,6 +2,10 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+from sklearn.tree import DecisionTreeRegressor, plot_tree
+from sklearn.preprocessing import OneHotEncoder
+from sklearn.compose import ColumnTransformer
+from sklearn.pipeline import Pipeline
 
 # ---------------------------------------------------------
 # PAGE CONFIG
@@ -29,7 +33,7 @@ The **JRU Senior High School Enrollment Forecasting Dashboard** is an interactiv
 ### 🎓 Context of the Study
 Education remains one of the most crucial sectors within the Philippine government. However, the country continues to face longstanding challenges such as shortages of instructional materials, insufficient school infrastructure, limited facilities, and inadequate teaching staff. These barriers hinder the delivery of quality education and contribute to learning inequalities (Coloquit, 2020).
 
-These issues relate directly to **Sustainable Development Goal (SDG) 4 — Quality Education**, which aims to ensure inclusive, equitable, and effective learning opportunities for all. Efficient resource planning, particularly in Senior High School, plays a critical role in achieving these goals.
+These issues relate directly to **Sustainable Development Goal (SDG 4 — Quality Education)**, which aims to ensure inclusive, equitable, and effective learning opportunities for all. Efficient resource planning, particularly in Senior High School, plays a critical role in achieving these goals.
 
 ### 🏫 Why Focus on Senior High School Enrollment?
 Senior High School (SHS), the final stage of the K–12 program, prepares students for specialized academic or technical-vocational pathways. Each SHS strand—such as STEM, ABM, HUMSS, or TVL—requires different facilities, staffing, equipment, and budget allocations.
@@ -96,63 +100,77 @@ with st.container():
         """, unsafe_allow_html=True)
 
 # ---------------------------------------------------------
-# DIVIDER
+# DECISION TREE VISUALIZATION (AFTER PREDICTION, BEFORE HISTORICAL)
 # ---------------------------------------------------------
-st.divider()
+if uploaded_file := st.file_uploader("📂 Upload Cleaned JRU SHS Dataset CSV File", type=["csv"]):
+    st.success("📁 File loaded successfully!")
 
-# ---------------------------------------------------------
-# CSV UPLOAD SECTION (UNDER PREDICTION)
-# ---------------------------------------------------------
-with st.container():
-    st.subheader("📂 View Historical Data")
+    df_tree = pd.read_csv(uploaded_file, parse_dates=["DateEnrolled", "Birthdate"])
+    df_tree = df_tree[['YearLevel', 'Strand', 'Student']].dropna()
 
-    uploaded_file = st.file_uploader("Upload Cleaned JRU SHS Dataset CSV File", type=["csv"])
+    X = df_tree[['YearLevel', 'Strand']]
+    y = df_tree['Student']
 
-    historical_df = None
-    if uploaded_file:
-        historical_df = pd.read_csv(uploaded_file, parse_dates=["DateEnrolled", "Birthdate"])
-        st.success("📁 File loaded successfully!")
+    # Preprocessing for Decision Tree
+    categorical_features = ['Strand']
+    preprocessor = ColumnTransformer(
+        transformers=[('cat', OneHotEncoder(handle_unknown='ignore'), categorical_features)],
+        remainder='passthrough'
+    )
 
-# ---------------------------------------------------------
-# HISTORICAL VISUALIZATION (WHEN CSV IS UPLOADED)
-# ---------------------------------------------------------
-if historical_df is not None:
+    # Decision Tree pipeline
+    model = Pipeline(steps=[
+        ('preprocessor', preprocessor),
+        ('regressor', DecisionTreeRegressor(max_depth=10, random_state=42))
+    ])
 
+    model.fit(X, y)
+
+    # Plot Decision Tree
+    st.divider()
+    with st.container():
+        st.subheader("🌳 Decision Tree Visualization for Enrollment Prediction")
+
+        tree_model = model.named_steps['regressor']
+        feature_names = model.named_steps['preprocessor'].get_feature_names_out()
+
+        fig, ax = plt.subplots(figsize=(20, 10))
+        plot_tree(tree_model, filled=True, feature_names=feature_names, rounded=True, fontsize=10, ax=ax)
+        plt.title("📈 Decision Tree for SHS Enrollment", fontsize=16)
+
+        st.pyplot(fig)
+        plt.close(fig)
+
+    # ---------------------------------------------------------
+    # HISTORICAL VISUALIZATION (WHEN CSV IS UPLOADED)
+    # ---------------------------------------------------------
     st.divider()
     st.subheader("📈 Historical Enrollment Dashboard")
 
-    historical_df["Year"] = historical_df["DateEnrolled"].dt.year
+    df_tree["Year"] = df_tree["DateEnrolled"].dt.year
 
-    # ---------------------------------------------------------
     # Enrollment Count by Year
-    # ---------------------------------------------------------
     st.write("### 🗓 Enrollment Count by Year")
-    enroll_by_year = historical_df.groupby("Year").size().reset_index(name="Enrollment")
+    enroll_by_year = df_tree.groupby("Year").size().reset_index(name="Enrollment")
     st.line_chart(enroll_by_year.set_index("Year"))
 
-    # ---------------------------------------------------------
     # Strand distribution
-    # ---------------------------------------------------------
     st.write("### 🧭 Strand Distribution")
-
     fig, ax = plt.subplots(figsize=(8, 5))
     sns.countplot(
-        data=historical_df,
+        data=df_tree,
         x="Strand",
         palette="pastel",
-        order=historical_df["Strand"].value_counts().index
+        order=df_tree["Strand"].value_counts().index
     )
     plt.xticks(rotation=45)
     st.pyplot(fig)
     plt.close(fig)
 
-    # ---------------------------------------------------------
     # Gender distribution
-    # ---------------------------------------------------------
     st.write("### 🚹🚺 Gender Distribution")
-
     fig, ax = plt.subplots(figsize=(6, 4))
-    historical_df["Gender"].value_counts().plot(
+    df_tree["Gender"].value_counts().plot(
         kind="pie",
         autopct="%1.1f%%"
     )
@@ -160,10 +178,7 @@ if historical_df is not None:
     st.pyplot(fig)
     plt.close(fig)
 
-    # ---------------------------------------------------------
     # Year vs Strand stacked chart
-    # ---------------------------------------------------------
     st.write("### 📊 Enrollment by Year & Strand")
-
-    year_strand = historical_df.groupby(["Year", "Strand"]).size().unstack(fill_value=0)
+    year_strand = df_tree.groupby(["Year", "Strand"]).size().unstack(fill_value=0)
     st.bar_chart(year_strand)
