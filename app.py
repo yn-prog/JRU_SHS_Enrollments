@@ -1,4 +1,4 @@
-import streamlit as st
+import streamlit as st 
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -14,8 +14,8 @@ st.set_page_config(
 
 st.title("🎓 JRU SHS Enrollment Forecast & Dashboard")
 st.write("""
-This application presents **next-year enrollment forecasts** per strand  
-based on the **finalized model outputs**, along with historical analytics.
+This app predicts **NEXT YEAR'S enrollment** based on Strand  
+using **final results**.
 """)
 
 # ---------------------------------------------------------
@@ -30,9 +30,9 @@ if uploaded_file:
     st.sidebar.success("📁 File loaded successfully!")
 
 # ---------------------------------------------------------
-# FINAL MODEL PREDICTION VALUES (RESULTS TAKEN FROM TRAINED PIPELINE)
+# PREDICTIONS (FINAL MAPPING)
 # ---------------------------------------------------------
-final_model_outputs = {
+predictions = {
     "SHS-AN": 73,
     "SHS-TG": 175,
     "SHS-SP": 213,
@@ -44,7 +44,22 @@ final_model_outputs = {
     "SHS-STEM": 922
 }
 
-all_strands = list(final_model_outputs.keys())
+# ---------------------------------------------------------
+# CURRENT ENROLLMENT 
+# ---------------------------------------------------------
+current_enrollment = {
+    "SHS-AN": 33,
+    "SHS-TG": 44,
+    "SHS-SP": 50,
+    "SHS-FB": 83,
+    "SHS-CHSS": 89,
+    "SHS-AD": 138,
+    "SHS-ABM": 293,
+    "SHS-HSSGA": 332,
+    "SHS-STEM": 922
+}
+
+all_strands = list(predictions.keys())
 
 # ---------------------------------------------------------
 # PREDICTION SECTION
@@ -56,25 +71,28 @@ strand = st.selectbox("Select Strand:", all_strands)
 if st.button("✨ Predict Next Year"):
     
     next_year = 2026
-    predicted_value = final_model_outputs[strand]
+    predicted_value = predictions[strand]
 
     st.write(f"## 🔮 Prediction for {strand} in {next_year}: **{predicted_value} students**")
 
     # ---------------------------------------------------------
-    # CURRENT ENROLLMENT FROM CSV
+    # CURRENT ENROLLMENT FROM CSV 
     # ---------------------------------------------------------
     if historical_df is not None:
-
+        # Read current from uploaded file
         current_count = historical_df[historical_df["Strand"] == strand].shape[0]
+    else:
+        # Use coded values
+        current_count = current_enrollment[strand]
 
-        st.write(f"### 📍 Current Enrollment ({strand}): **{current_count} students**")
+    st.write(f"### 📍 Current Enrollment ({strand}): **{current_count} students**")
 
-        # Comparison chart
-        fig, ax = plt.subplots(figsize=(5, 4))
-        ax.bar(["Current", "Forecast for Next Year"], [current_count, predicted_value])
-        ax.set_title(f"Current vs Next-Year Forecast\n({strand})")
-        ax.set_ylabel("Number of Students")
-        st.pyplot(fig)
+    # Comparison chart
+    fig, ax = plt.subplots(figsize=(5, 4))
+    ax.bar(["Current", "Predicted Next Year"], [current_count, predicted_value])
+    ax.set_title(f"Current vs Next Year Prediction\n({strand})")
+    ax.set_ylabel("Number of Students")
+    st.pyplot(fig)
 
 # ---------------------------------------------------------
 # HISTORICAL VISUALIZATION
