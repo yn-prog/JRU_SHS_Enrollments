@@ -18,17 +18,6 @@ This app predicts **NEXT YEAR'S enrollment** based on Strand.
 """)
 
 # ---------------------------------------------------------
-# SIDEBAR — UPLOAD CSV
-# ---------------------------------------------------------
-st.sidebar.header("📂 Upload Historical Dataset")
-uploaded_file = st.sidebar.file_uploader("Upload CSV", type=["csv"])
-
-historical_df = None
-if uploaded_file:
-    historical_df = pd.read_csv(uploaded_file, parse_dates=["DateEnrolled", "Birthdate"])
-    st.sidebar.success("📁 File loaded successfully!")
-
-# ---------------------------------------------------------
 # PREDICTIONS
 # ---------------------------------------------------------
 hardcoded_predictions = {
@@ -46,31 +35,54 @@ hardcoded_predictions = {
 all_strands = list(hardcoded_predictions.keys())
 
 # ---------------------------------------------------------
-# PREDICTION SECTION
+# PREDICTION SECTION (TOP BOX)
 # ---------------------------------------------------------
-st.subheader("🔮 Predict Next Year's Enrollment")
+with st.container():
+    st.subheader("🔮 Predict Next Year's Enrollment")
 
-strand = st.selectbox("Select Strand:", all_strands)
+    strand = st.selectbox("Select Strand:", all_strands)
 
-if st.button("✨ Predict Next Year"):
+    if st.button("✨ Predict Next Year"):
+        next_year = 2026
+        predicted_value = hardcoded_predictions[strand]
 
-    next_year = 2026
-    predicted_value = hardcoded_predictions[strand]
-
-    st.write(f"## 🔮 Prediction for {strand} in {next_year}: **{predicted_value} students**")
+        st.markdown(f"""
+        <div style="padding: 15px; background-color: #F7F7F7; border-radius: 10px; border: 1px solid #DDD;">
+            <h3>🔮 Prediction for {strand} in {next_year}: 
+            <span style="color:#005BBB;">{predicted_value} students</span></h3>
+        </div>
+        """, unsafe_allow_html=True)
 
 # ---------------------------------------------------------
-# HISTORICAL VISUALIZATION
+# DIVIDER
+# ---------------------------------------------------------
+st.divider()
+
+# ---------------------------------------------------------
+# CSV UPLOAD SECTION (UNDER PREDICTION)
+# ---------------------------------------------------------
+with st.container():
+    st.subheader("📂 Upload Historical Enrollment CSV")
+
+    uploaded_file = st.file_uploader("Upload CSV File", type=["csv"])
+
+    historical_df = None
+    if uploaded_file:
+        historical_df = pd.read_csv(uploaded_file, parse_dates=["DateEnrolled", "Birthdate"])
+        st.success("📁 File loaded successfully!")
+
+# ---------------------------------------------------------
+# HISTORICAL VISUALIZATION (ONLY IF CSV EXISTS)
 # ---------------------------------------------------------
 if historical_df is not None:
 
+    st.divider()
     st.subheader("📈 Historical Enrollment Dashboard")
 
-    # Add year column based on DateEnrolled
     historical_df["Year"] = historical_df["DateEnrolled"].dt.year
 
     # ---------------------------------------------------------
-    # Total enrollment by year
+    # Enrollment Count by Year
     # ---------------------------------------------------------
     st.write("### 🗓 Enrollment Count by Year")
     enroll_by_year = historical_df.groupby("Year").size().reset_index(name="Enrollment")
@@ -107,7 +119,7 @@ if historical_df is not None:
     plt.close(fig)
 
     # ---------------------------------------------------------
-    # Year vs Strand stacked bar chart
+    # Year vs Strand stacked chart
     # ---------------------------------------------------------
     st.write("### 📊 Enrollment by Year & Strand")
 
