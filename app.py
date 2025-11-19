@@ -51,15 +51,13 @@ This dashboard introduces a **data-driven forecasting system** that predicts the
 - Ensure **equitable access** to learning spaces and educational resources
 - Assist school leaders in making **timely and well-informed decisions**
 
-By helping the university plan more effectively, this tool supports SDG 4 by strengthening education systems and ensuring that all learners receive the quality education they deserve.
-
 </div>
 """, unsafe_allow_html=True)
 
 # ---------------------------------------------------------
 # PREDICTIONS
 # ---------------------------------------------------------
-hardcoded_predictions = {
+predictions = {
     "SHS-AN": 73,
     "SHS-TG": 175,
     "SHS-SP": 213,
@@ -71,7 +69,7 @@ hardcoded_predictions = {
     "SHS-STEM": 922
 }
 
-all_strands = list(hardcoded_predictions.keys())
+all_strands = list(predictions.keys())
 
 # ---------------------------------------------------------
 # PREDICTION SECTION (TOP BOX)
@@ -83,7 +81,7 @@ with st.container():
 
     if st.button("✨ Predict Next Year"):
         next_year = 2026
-        predicted_value = hardcoded_predictions[strand]
+        predicted_value = predictions[strand]
 
         st.markdown(f"""
         <div style="padding: 15px; background-color: #E8F4FF; border-radius: 10px; border: 1px solid #BDD7EE;">
@@ -101,9 +99,9 @@ st.divider()
 # CSV UPLOAD SECTION (UNDER PREDICTION)
 # ---------------------------------------------------------
 with st.container():
-    st.subheader("📂 Upload Historical Enrollment CSV")
+    st.subheader("📂 View Historical Data")
 
-    uploaded_file = st.file_uploader("Upload CSV File", type=["csv"])
+    uploaded_file = st.file_uploader("Upload Cleaned JRU SHS Dataset CSV File", type=["csv"])
 
     historical_df = None
     if uploaded_file:
@@ -111,7 +109,7 @@ with st.container():
         st.success("📁 File loaded successfully!")
 
 # ---------------------------------------------------------
-# HISTORICAL VISUALIZATION (ONLY IF CSV EXISTS)
+# HISTORICAL VISUALIZATION (WHEN CSV IS UPLOADED)
 # ---------------------------------------------------------
 if historical_df is not None:
 
