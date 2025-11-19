@@ -12,10 +12,38 @@ st.set_page_config(
     layout="wide"
 )
 
-st.title("🎓 JRU SHS Enrollment Forecast & Dashboard")
-st.write("""
-This app predicts **NEXT YEAR'S enrollment** based on Strand.
-""")
+# ---------------------------------------------------------
+# INTRODUCTION / CONTEXT
+# ---------------------------------------------------------
+with st.container():
+    st.markdown(
+        """
+        <div style="padding: 20px; background-color: #F0F4F8; border-radius: 10px; border: 1px solid #DDD;">
+            <h2>🎓 About This Dashboard</h2>
+            <p>
+            The <b>JRU Senior High School Enrollment Forecasting Dashboard</b> is an interactive tool designed to support
+            evidence-based decision-making at José Rizal University. It helps administrators plan resources efficiently
+            by predicting the number of incoming students per Senior High School strand for the next academic year.
+            </p>
+            <details>
+                <summary><b>Read more about the study</b></summary>
+                <p>
+                Education in the Philippines continues to face challenges such as shortages of instructional materials, 
+                insufficient infrastructure, and limited teaching staff, making it harder for students to access quality education.
+                This dashboard aligns with Sustainable Development Goal 4 (Quality Education) by promoting equitable access and
+                effective planning. Senior High School (SHS), the final two years of the K–12 program, requires careful planning
+                since each strand (e.g., STEM, ABM, HUMSS, TVL) needs different facilities, equipment, and staffing.
+                </p>
+                <p>
+                By providing accurate enrollment predictions per strand, this tool assists in classroom allocation, facility preparation,
+                and budget planning, ensuring that all students receive the resources they need for a high-quality learning experience.
+                </p>
+            </details>
+        </div>
+        """, unsafe_allow_html=True
+    )
+
+st.divider()
 
 # ---------------------------------------------------------
 # PREDICTIONS
@@ -53,9 +81,6 @@ with st.container():
         </div>
         """, unsafe_allow_html=True)
 
-# ---------------------------------------------------------
-# DIVIDER
-# ---------------------------------------------------------
 st.divider()
 
 # ---------------------------------------------------------
