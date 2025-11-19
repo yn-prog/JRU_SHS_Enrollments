@@ -167,7 +167,3 @@ if historical_df is not None:
 
     year_strand = historical_df.groupby(["Year", "Strand"]).size().unstack(fill_value=0)
     st.bar_chart(year_strand)
-
----
-
-can you make the "about, context, why, purpose" like expandable containers with those as titles of each
