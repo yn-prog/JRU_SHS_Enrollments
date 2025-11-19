@@ -61,12 +61,25 @@ st.subheader("🔮 Predict Next Year's Enrollment")
 
 strand = st.selectbox("Select Strand:", all_strands)
 
-# The model WAS trained with numeric YearLevel (1 or 2)
+# Required because the model was trained WITH YearLevel
 year_level = st.selectbox("Select Year Level:", [1, 2])
 
 if st.button("✨ Predict Next Year"):
-    
-    next_year = 2026  # Dataset year is 2024-2025
+
+    next_year = 2026
+
+    # MUST match model training columns EXACTLY
+    input_df = pd.DataFrame({
+        "Strand": [strand],
+        "YearLevel": [year_level]
+    })
+
+    predicted_value = model.predict(input_df)[0]
+
+    st.write(
+        f"## 🔮 Prediction for {strand} (YearLevel {year_level}) in {next_year}: "
+        f"**{predicted_value:.0f} students**"
+    )
 
     # ---------------------------------------------------------
     # CORRECT INPUT TO MATCH TRAINING DATA
