@@ -108,7 +108,6 @@ with st.container():
 # ---------------------------------------------------------
 # DECISION TREE VISUALIZATION
 # ---------------------------------------------------------
-st.divider()
 with st.expander("🌳 Show Decision Tree Visualization"):
     st.write("This diagram shows how the model splits features to make predictions.")
     tree_model = model.named_steps["regressor"]
