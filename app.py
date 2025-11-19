@@ -43,6 +43,8 @@ hardcoded_predictions = {
     "SHS-STEM": 922
 }
 
+all_strands = list(hardcoded_predictions.keys())
+
 # ---------------------------------------------------------
 # PREDICTION SECTION
 # ---------------------------------------------------------
@@ -64,13 +66,21 @@ if historical_df is not None:
 
     st.subheader("📈 Historical Enrollment Dashboard")
 
+    # Add year column based on DateEnrolled
     historical_df["Year"] = historical_df["DateEnrolled"].dt.year
 
+    # ---------------------------------------------------------
+    # Total enrollment by year
+    # ---------------------------------------------------------
     st.write("### 🗓 Enrollment Count by Year")
     enroll_by_year = historical_df.groupby("Year").size().reset_index(name="Enrollment")
     st.line_chart(enroll_by_year.set_index("Year"))
 
+    # ---------------------------------------------------------
+    # Strand distribution
+    # ---------------------------------------------------------
     st.write("### 🧭 Strand Distribution")
+
     fig, ax = plt.subplots(figsize=(8, 5))
     sns.countplot(
         data=historical_df,
@@ -82,7 +92,11 @@ if historical_df is not None:
     st.pyplot(fig)
     plt.close(fig)
 
+    # ---------------------------------------------------------
+    # Gender distribution
+    # ---------------------------------------------------------
     st.write("### 🚹🚺 Gender Distribution")
+
     fig, ax = plt.subplots(figsize=(6, 4))
     historical_df["Gender"].value_counts().plot(
         kind="pie",
@@ -92,6 +106,10 @@ if historical_df is not None:
     st.pyplot(fig)
     plt.close(fig)
 
+    # ---------------------------------------------------------
+    # Year vs Strand stacked bar chart
+    # ---------------------------------------------------------
     st.write("### 📊 Enrollment by Year & Strand")
+
     year_strand = historical_df.groupby(["Year", "Strand"]).size().unstack(fill_value=0)
     st.bar_chart(year_strand)
