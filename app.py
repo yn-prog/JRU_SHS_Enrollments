@@ -13,37 +13,48 @@ st.set_page_config(
 )
 
 # ---------------------------------------------------------
-# INTRODUCTION / CONTEXT
+# APP TITLE
 # ---------------------------------------------------------
-with st.container():
-    st.markdown(
-        """
-        <div style="padding: 20px; background-color: #F0F4F8; border-radius: 10px; border: 1px solid #DDD;">
-            <h2>🎓 About This Dashboard</h2>
-            <p>
-            The <b>JRU Senior High School Enrollment Forecasting Dashboard</b> is an interactive tool designed to support
-            evidence-based decision-making at José Rizal University. It helps administrators plan resources efficiently
-            by predicting the number of incoming students per Senior High School strand for the next academic year.
-            </p>
-            <details>
-                <summary><b>Read more about the study</b></summary>
-                <p>
-                Education in the Philippines continues to face challenges such as shortages of instructional materials, 
-                insufficient infrastructure, and limited teaching staff, making it harder for students to access quality education.
-                This dashboard aligns with Sustainable Development Goal 4 (Quality Education) by promoting equitable access and
-                effective planning. Senior High School (SHS), the final two years of the K–12 program, requires careful planning
-                since each strand (e.g., STEM, ABM, HUMSS, TVL) needs different facilities, equipment, and staffing.
-                </p>
-                <p>
-                By providing accurate enrollment predictions per strand, this tool assists in classroom allocation, facility preparation,
-                and budget planning, ensuring that all students receive the resources they need for a high-quality learning experience.
-                </p>
-            </details>
-        </div>
-        """, unsafe_allow_html=True
-    )
+st.title("🎓 JRU SHS Enrollment Forecast & Dashboard")
 
-st.divider()
+# ---------------------------------------------------------
+# DETAILED INTRODUCTION
+# ---------------------------------------------------------
+st.markdown("""
+<div style="padding: 15px; background-color: #F7F7F7; border-radius: 10px; border: 1px solid #DDD;">
+
+### 📘 About This Dashboard
+The **JRU Senior High School Enrollment Forecasting Dashboard** is an interactive tool designed to support **evidence-based decision-making** at José Rizal University. This dashboard forms part of a research study focused on addressing persistent challenges in educational resource allocation—an issue that continues to affect many schools across the Philippines.
+
+### 🎓 Context of the Study
+Education remains one of the most crucial sectors within the Philippine government. However, the country continues to face longstanding challenges such as shortages of instructional materials, insufficient school infrastructure, limited facilities, and inadequate teaching staff. These barriers hinder the delivery of quality education and contribute to learning inequalities (Coloquit, 2020).
+
+These issues relate directly to **Sustainable Development Goal (SDG) 4 — Quality Education**, which aims to ensure inclusive, equitable, and effective learning opportunities for all. Efficient resource planning, particularly in Senior High School, plays a critical role in achieving these goals.
+
+### 🏫 Why Focus on Senior High School Enrollment?
+Senior High School (SHS), the final stage of the K–12 program, prepares students for specialized academic or technical-vocational pathways. Each SHS strand—such as STEM, ABM, HUMSS, or TVL—requires different facilities, staffing, equipment, and budget allocations.
+
+Because enrollment numbers fluctuate every year, the university faces difficulties such as:
+- Overcrowded classrooms  
+- Underutilized rooms in some strands  
+- Budget misalignment  
+- Facility shortages (e.g., laboratories, business rooms, TVL equipment)  
+- Scheduling inefficiencies before classes begin  
+
+Currently, administrators rely heavily on simple comparisons of past enrollment counts. This method is not enough to reflect trends, sudden increases, or strand-specific demands.
+
+### 📊 Purpose of This Dashboard
+This dashboard introduces a **data-driven forecasting system** that predicts the number of incoming Senior High School students per strand for the next academic year. Its goals are to:
+- Provide **accurate, strand-level enrollment forecasts**
+- Support **better classroom and facility planning**
+- Improve **budget allocation** based on predicted strand needs
+- Ensure **equitable access** to learning spaces and educational resources
+- Assist school leaders in making **timely and well-informed decisions**
+
+By helping the university plan more effectively, this tool supports SDG 4 by strengthening education systems and ensuring that all learners receive the quality education they deserve.
+
+</div>
+""", unsafe_allow_html=True)
 
 # ---------------------------------------------------------
 # PREDICTIONS
@@ -75,12 +86,15 @@ with st.container():
         predicted_value = hardcoded_predictions[strand]
 
         st.markdown(f"""
-        <div style="padding: 15px; background-color: #F7F7F7; border-radius: 10px; border: 1px solid #DDD;">
+        <div style="padding: 15px; background-color: #E8F4FF; border-radius: 10px; border: 1px solid #BDD7EE;">
             <h3>🔮 Prediction for {strand} in {next_year}: 
             <span style="color:#005BBB;">{predicted_value} students</span></h3>
         </div>
         """, unsafe_allow_html=True)
 
+# ---------------------------------------------------------
+# DIVIDER
+# ---------------------------------------------------------
 st.divider()
 
 # ---------------------------------------------------------
