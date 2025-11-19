@@ -44,23 +44,6 @@ hardcoded_predictions = {
 }
 
 # ---------------------------------------------------------
-# CURRENT ENROLLMENT VALUES
-# ---------------------------------------------------------
-hardcoded_current_enrollment = {
-    "SHS-AN": 33,
-    "SHS-TG": 44,
-    "SHS-SP": 50,
-    "SHS-FB": 83,
-    "SHS-CHSS": 89,
-    "SHS-AD": 138,
-    "SHS-ABM": 293,
-    "SHS-HSSGA": 332,
-    "SHS-STEM": 922
-}
-
-all_strands = list(hardcoded_predictions.keys())
-
-# ---------------------------------------------------------
 # PREDICTION SECTION
 # ---------------------------------------------------------
 st.subheader("🔮 Predict Next Year's Enrollment")
@@ -73,14 +56,6 @@ if st.button("✨ Predict Next Year"):
     predicted_value = hardcoded_predictions[strand]
 
     st.write(f"## 🔮 Prediction for {strand} in {next_year}: **{predicted_value} students**")
-
-    # Current enrollment
-    if historical_df is not None:
-        current_count = historical_df[historical_df["Strand"] == strand].shape[0]
-    else:
-        current_count = hardcoded_current_enrollment[strand]
-
-    st.write(f"### 📍 Current Enrollment ({strand}): **{current_count} students**")
 
 # ---------------------------------------------------------
 # HISTORICAL VISUALIZATION
