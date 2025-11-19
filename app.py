@@ -100,46 +100,16 @@ with st.container():
         """, unsafe_allow_html=True)
 
 # ---------------------------------------------------------
-# DECISION TREE VISUALIZATION (AFTER PREDICTION, BEFORE HISTORICAL)
+# DECISION TREE VISUALIZATION 
 # ---------------------------------------------------------
-if uploaded_file := st.file_uploader("📂 Upload Cleaned JRU SHS Dataset CSV File", type=["csv"]):
-    st.success("📁 File loaded successfully!")
+st.divider()
+with st.expander("🌳 Show Decision Tree Visualization"):
+    st.write("This diagram shows how the model splits features to make predictions.")
+    tree_model = model.named_steps["regressor"]
 
-    df_tree = pd.read_csv(uploaded_file, parse_dates=["DateEnrolled", "Birthdate"])
-    df_tree = df_tree[['YearLevel', 'Strand', 'Student']].dropna()
-
-    X = df_tree[['YearLevel', 'Strand']]
-    y = df_tree['Student']
-
-    # Preprocessing for Decision Tree
-    categorical_features = ['Strand']
-    preprocessor = ColumnTransformer(
-        transformers=[('cat', OneHotEncoder(handle_unknown='ignore'), categorical_features)],
-        remainder='passthrough'
-    )
-
-    # Decision Tree pipeline
-    model = Pipeline(steps=[
-        ('preprocessor', preprocessor),
-        ('regressor', DecisionTreeRegressor(max_depth=10, random_state=42))
-    ])
-
-    model.fit(X, y)
-
-    # Plot Decision Tree
-    st.divider()
-    with st.container():
-        st.subheader("🌳 Decision Tree Visualization for Enrollment Prediction")
-
-        tree_model = model.named_steps['regressor']
-        feature_names = model.named_steps['preprocessor'].get_feature_names_out()
-
-        fig, ax = plt.subplots(figsize=(20, 10))
-        plot_tree(tree_model, filled=True, feature_names=feature_names, rounded=True, fontsize=10, ax=ax)
-        plt.title("📈 Decision Tree for SHS Enrollment", fontsize=16)
-
-        st.pyplot(fig)
-        plt.close(fig)
+    fig, ax = plt.subplots(figsize=(20, 10))
+    plot_tree(tree_model, filled=True, rounded=True, fontsize=10, ax=ax)
+    st.pyplot(fig)
 
     # ---------------------------------------------------------
     # HISTORICAL VISUALIZATION (WHEN CSV IS UPLOADED)
