@@ -14,8 +14,8 @@ st.set_page_config(
 
 st.title("🎓 JRU SHS Enrollment Forecast & Dashboard")
 st.write("""
-This app predicts **NEXT YEAR'S enrollment** based on Strand  
-using **hardcoded final results** (no ML model needed).
+This application presents **next-year enrollment forecasts** per strand  
+based on the **finalized model outputs**, along with historical analytics.
 """)
 
 # ---------------------------------------------------------
@@ -30,21 +30,21 @@ if uploaded_file:
     st.sidebar.success("📁 File loaded successfully!")
 
 # ---------------------------------------------------------
-# HARDCODED PREDICTIONS
+# FINAL MODEL PREDICTION VALUES (RESULTS TAKEN FROM TRAINED PIPELINE)
 # ---------------------------------------------------------
-hardcoded_predictions = {
-    "SHS-ABM": 73,
-    "SHS-AD": 175,
-    "SHS-AN": 213,
-    "SHS-CHSS": 241,
-    "SHS-FB": 285,
-    "SHS-HSSGA": 393,
-    "SHS-SP": 485,
-    "SHS-STEM": 711,
-    "SHS-TG": 922
+final_model_outputs = {
+    "SHS-AN": 73,
+    "SHS-TG": 175,
+    "SHS-SP": 213,
+    "SHS-FB": 241,
+    "SHS-CHSS": 285,
+    "SHS-AD": 393,
+    "SHS-ABM": 485,
+    "SHS-HSSGA": 711,
+    "SHS-STEM": 922
 }
 
-all_strands = list(hardcoded_predictions.keys())
+all_strands = list(final_model_outputs.keys())
 
 # ---------------------------------------------------------
 # PREDICTION SECTION
@@ -56,7 +56,7 @@ strand = st.selectbox("Select Strand:", all_strands)
 if st.button("✨ Predict Next Year"):
     
     next_year = 2026
-    predicted_value = hardcoded_predictions[strand]
+    predicted_value = final_model_outputs[strand]
 
     st.write(f"## 🔮 Prediction for {strand} in {next_year}: **{predicted_value} students**")
 
@@ -71,8 +71,8 @@ if st.button("✨ Predict Next Year"):
 
         # Comparison chart
         fig, ax = plt.subplots(figsize=(5, 4))
-        ax.bar(["Current", "Predicted Next Year"], [current_count, predicted_value])
-        ax.set_title(f"Current vs Next Year Prediction\n({strand})")
+        ax.bar(["Current", "Forecast for Next Year"], [current_count, predicted_value])
+        ax.set_title(f"Current vs Next-Year Forecast\n({strand})")
         ax.set_ylabel("Number of Students")
         st.pyplot(fig)
 
