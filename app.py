@@ -82,28 +82,6 @@ if st.button("✨ Predict Next Year"):
 
     st.write(f"### 📍 Current Enrollment ({strand}): **{current_count} students**")
 
-    # ---------------------------------------------------------
-    # FIXED BAR CHART (COLORS ADDED SO BOTH BARS SHOW)
-    # ---------------------------------------------------------
-    fig, ax = plt.subplots(figsize=(5, 4))
-
-    ax.bar(
-        ["Current", "Predicted"],
-        [current_count, predicted_value],
-        color=["#4B9CD3", "#F4A460"]  # two visible colors
-    )
-
-    ax.set_title(f"Current vs Next Year Prediction\n({strand})")
-    ax.set_ylabel("Number of Students")
-
-    # Add value labels on bars
-    for i, v in enumerate([current_count, predicted_value]):
-        ax.text(i, v + 2, str(v), ha="center")
-
-    plt.tight_layout()
-    st.pyplot(fig)
-    plt.close(fig)
-
 # ---------------------------------------------------------
 # HISTORICAL VISUALIZATION
 # ---------------------------------------------------------
