@@ -137,11 +137,14 @@ if historical_df is not None:
     
     fig, ax = plt.subplots(figsize=(8, 5))
     
-    # Get unique strands in order of appearance
-    strand_order = historical_df["Strand"].value_counts().index.tolist()
+    # Hardcoded strand order
+    strand_order = ["SHS-AN", "SHS-TG", "SHS-SP", "SHS-FB", 
+                    "SHS-CHSS", "SHS-AD", "SHS-ABM", "SHS-HSSGA", "SHS-STEM"]
+    
+    # Assign pastel colors
     colors = sns.color_palette("pastel", len(strand_order))
     
-    # Plot countplot
+    # Plot countplot using the hardcoded order
     sns.countplot(
         data=historical_df,
         x="Strand",
@@ -149,10 +152,10 @@ if historical_df is not None:
         order=strand_order
     )
     
-    # Remove x-axis labels to avoid clutter
+    # Hide x-axis labels for clarity
     ax.set_xticklabels([])
     
-    # Create legend using actual strand names
+    # Hardcoded legend with actual strand names
     handles = [plt.Rectangle((0,0),1,1, color=colors[i]) for i in range(len(strand_order))]
     ax.legend(handles, strand_order, title="Strands", bbox_to_anchor=(1.05, 1), loc='upper left')
     
