@@ -131,34 +131,18 @@ if historical_df is not None:
     st.line_chart(enroll_by_year.set_index("Year"))
 
     # ---------------------------------------------------------
-    # Strand distribution with legend
+    # Strand distribution
     # ---------------------------------------------------------
     st.write("### 🧭 Strand Distribution")
-    
+
     fig, ax = plt.subplots(figsize=(8, 5))
-    
-    # Hardcoded strand order
-    strand_order = ["SHS-AN", "SHS-TG", "SHS-SP", "SHS-FB", 
-                    "SHS-CHSS", "SHS-AD", "SHS-ABM", "SHS-HSSGA", "SHS-STEM"]
-    
-    # Assign pastel colors
-    colors = sns.color_palette("pastel", len(strand_order))
-    
-    # Plot countplot using the hardcoded order
     sns.countplot(
         data=historical_df,
         x="Strand",
-        palette=colors,
-        order=strand_order
+        palette="pastel",
+        order=historical_df["Strand"].value_counts().index
     )
-    
-    # Hide x-axis labels for clarity
-    ax.set_xticklabels([])
-    
-    # Hardcoded legend with actual strand names
-    handles = [plt.Rectangle((0,0),1,1, color=colors[i]) for i in range(len(strand_order))]
-    ax.legend(handles, strand_order, title="Strands", bbox_to_anchor=(1.05, 1), loc='upper left')
-    
+    plt.xticks(rotation=45)
     st.pyplot(fig)
     plt.close(fig)
 
