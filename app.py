@@ -131,18 +131,29 @@ if historical_df is not None:
     st.line_chart(enroll_by_year.set_index("Year"))
 
     # ---------------------------------------------------------
-    # Strand distribution
+    # Strand distribution with legend
     # ---------------------------------------------------------
     st.write("### 🧭 Strand Distribution")
-
+    
     fig, ax = plt.subplots(figsize=(8, 5))
+    colors = sns.color_palette("pastel", len(historical_df["Strand"].unique()))
+    
+    # Plot countplot without x-axis labels
     sns.countplot(
         data=historical_df,
         x="Strand",
-        palette="pastel",
+        palette=colors,
         order=historical_df["Strand"].value_counts().index
     )
-    plt.xticks(rotation=45)
+    
+    # Hide x-axis labels (they will be in the legend)
+    ax.set_xticklabels([])
+    
+    # Add a legend mapping each color to its strand
+    handles = [plt.Rectangle((0,0),1,1, color=colors[i]) for i in range(len(colors))]
+    labels = historical_df["Strand"].value_counts().index.tolist()
+    ax.legend(handles, labels, title="Strands", bbox_to_anchor=(1.05, 1), loc='upper left')
+    
     st.pyplot(fig)
     plt.close(fig)
 
