@@ -136,23 +136,25 @@ if historical_df is not None:
     st.write("### 🧭 Strand Distribution")
     
     fig, ax = plt.subplots(figsize=(8, 5))
-    colors = sns.color_palette("pastel", len(historical_df["Strand"].unique()))
     
-    # Plot countplot without x-axis labels
+    # Get unique strands in order of appearance
+    strand_order = historical_df["Strand"].value_counts().index.tolist()
+    colors = sns.color_palette("pastel", len(strand_order))
+    
+    # Plot countplot
     sns.countplot(
         data=historical_df,
         x="Strand",
         palette=colors,
-        order=historical_df["Strand"].value_counts().index
+        order=strand_order
     )
     
-    # Hide x-axis labels (they will be in the legend)
+    # Remove x-axis labels to avoid clutter
     ax.set_xticklabels([])
     
-    # Add a legend mapping each color to its strand
-    handles = [plt.Rectangle((0,0),1,1, color=colors[i]) for i in range(len(colors))]
-    labels = historical_df["Strand"].value_counts().index.tolist()
-    ax.legend(handles, labels, title="Strands", bbox_to_anchor=(1.05, 1), loc='upper left')
+    # Create legend using actual strand names
+    handles = [plt.Rectangle((0,0),1,1, color=colors[i]) for i in range(len(strand_order))]
+    ax.legend(handles, strand_order, title="Strands", bbox_to_anchor=(1.05, 1), loc='upper left')
     
     st.pyplot(fig)
     plt.close(fig)
