@@ -14,8 +14,7 @@ st.set_page_config(
 
 st.title("🎓 JRU SHS Enrollment Forecast & Dashboard")
 st.write("""
-This app predicts **NEXT YEAR'S enrollment** based on Strand  
-using **final results**.
+This app predicts **NEXT YEAR'S enrollment** based on Strand.
 """)
 
 # ---------------------------------------------------------
@@ -30,9 +29,9 @@ if uploaded_file:
     st.sidebar.success("📁 File loaded successfully!")
 
 # ---------------------------------------------------------
-# PREDICTIONS (FINAL MAPPING)
+# PREDICTIONS
 # ---------------------------------------------------------
-predictions = {
+hardcoded_predictions = {
     "SHS-AN": 73,
     "SHS-TG": 175,
     "SHS-SP": 213,
@@ -45,9 +44,9 @@ predictions = {
 }
 
 # ---------------------------------------------------------
-# CURRENT ENROLLMENT 
+# CURRENT ENROLLMENT VALUES
 # ---------------------------------------------------------
-current_enrollment = {
+hardcoded_current_enrollment = {
     "SHS-AN": 33,
     "SHS-TG": 44,
     "SHS-SP": 50,
@@ -59,7 +58,7 @@ current_enrollment = {
     "SHS-STEM": 922
 }
 
-all_strands = list(predictions.keys())
+all_strands = list(hardcoded_predictions.keys())
 
 # ---------------------------------------------------------
 # PREDICTION SECTION
@@ -69,30 +68,31 @@ st.subheader("🔮 Predict Next Year's Enrollment")
 strand = st.selectbox("Select Strand:", all_strands)
 
 if st.button("✨ Predict Next Year"):
-    
+
     next_year = 2026
-    predicted_value = predictions[strand]
+    predicted_value = hardcoded_predictions[strand]
 
     st.write(f"## 🔮 Prediction for {strand} in {next_year}: **{predicted_value} students**")
 
-    # ---------------------------------------------------------
-    # CURRENT ENROLLMENT FROM CSV 
-    # ---------------------------------------------------------
+    # Current enrollment
     if historical_df is not None:
-        # Read current from uploaded file
         current_count = historical_df[historical_df["Strand"] == strand].shape[0]
     else:
-        # Use coded values
-        current_count = current_enrollment[strand]
+        current_count = hardcoded_current_enrollment[strand]
 
     st.write(f"### 📍 Current Enrollment ({strand}): **{current_count} students**")
 
-    # Comparison chart
+    # ---------------------------------------------------------
+    # FIXED BAR CHART (ALWAYS SHOWS)
+    # ---------------------------------------------------------
     fig, ax = plt.subplots(figsize=(5, 4))
-    ax.bar(["Current", "Predicted Next Year"], [current_count, predicted_value])
+    ax.bar(["Current", "Predicted"], [current_count, predicted_value])
     ax.set_title(f"Current vs Next Year Prediction\n({strand})")
     ax.set_ylabel("Number of Students")
-    st.pyplot(fig)
+    plt.tight_layout()
+
+    st.pyplot(fig)   # ensures it displays
+    plt.close(fig)   # prevents figure overlap
 
 # ---------------------------------------------------------
 # HISTORICAL VISUALIZATION
@@ -125,6 +125,7 @@ if historical_df is not None:
     )
     plt.xticks(rotation=45)
     st.pyplot(fig)
+    plt.close(fig)
 
     # ---------------------------------------------------------
     # Gender distribution
@@ -134,11 +135,11 @@ if historical_df is not None:
     fig, ax = plt.subplots(figsize=(6, 4))
     historical_df["Gender"].value_counts().plot(
         kind="pie",
-        autopct="%1.1f%%",
-        colors=["#87CEFA", "#FFB6C1"]
+        autopct="%1.1f%%"
     )
     plt.ylabel("")
     st.pyplot(fig)
+    plt.close(fig)
 
     # ---------------------------------------------------------
     # Year vs Strand stacked bar chart
