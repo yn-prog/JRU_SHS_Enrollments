@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-import joblib
 import matplotlib.pyplot as plt
 import seaborn as sns
 
@@ -16,17 +15,8 @@ st.set_page_config(
 st.title("🎓 JRU SHS Enrollment Forecast & Dashboard")
 st.write("""
 This app predicts **NEXT YEAR'S enrollment** based on Strand  
-and displays **current enrollment** from the uploaded dataset.
+using **hardcoded final results** (no ML model needed).
 """)
-
-# ---------------------------------------------------------
-# LOAD MODEL
-# ---------------------------------------------------------
-@st.cache_resource
-def load_model():
-    return joblib.load("JRU_SHS_DecisionTree_FullPipeline.joblib")
-
-model = load_model()
 
 # ---------------------------------------------------------
 # SIDEBAR — UPLOAD CSV
@@ -40,19 +30,21 @@ if uploaded_file:
     st.sidebar.success("📁 File loaded successfully!")
 
 # ---------------------------------------------------------
-# LIST OF ALL STRANDS (based on your dataset)
+# HARDCODED PREDICTIONS
 # ---------------------------------------------------------
-all_strands = [
-    "SHS-ABM",
-    "SHS-AD",
-    "SHS-AN",
-    "SHS-CHSS",
-    "SHS-FB",
-    "SHS-HSSGA",
-    "SHS-SP",
-    "SHS-STEM",
-    "SHS-TG"
-]
+hardcoded_predictions = {
+    "SHS-ABM": 73,
+    "SHS-AD": 175,
+    "SHS-AN": 213,
+    "SHS-CHSS": 241,
+    "SHS-FB": 285,
+    "SHS-HSSGA": 393,
+    "SHS-SP": 485,
+    "SHS-STEM": 711,
+    "SHS-TG": 922
+}
+
+all_strands = list(hardcoded_predictions.keys())
 
 # ---------------------------------------------------------
 # PREDICTION SECTION
@@ -61,54 +53,26 @@ st.subheader("🔮 Predict Next Year's Enrollment")
 
 strand = st.selectbox("Select Strand:", all_strands)
 
-# Required because the model was trained WITH YearLevel
-year_level = st.selectbox("Select Year Level:", [1, 2])
-
 if st.button("✨ Predict Next Year"):
-
-    next_year = 2026
-
-    # MUST match model training columns EXACTLY
-    input_df = pd.DataFrame({
-        "Strand": [strand],
-        "YearLevel": [year_level]
-    })
-
-    predicted_value = model.predict(input_df)[0]
-
-    st.write(
-        f"## 🔮 Prediction for {strand} (YearLevel {year_level}) in {next_year}: "
-        f"**{predicted_value:.0f} students**"
-    )
-
-    # ---------------------------------------------------------
-    # CORRECT INPUT TO MATCH TRAINING DATA
-    # ---------------------------------------------------------
-    input_df = pd.DataFrame({
-    "Strand": [strand]
-    })
-
-    # Model prediction
-    predicted_value = model.predict(input_df)[0]
     
-    st.write(f"## 🔮 Prediction for {strand} in {next_year}: **{predicted_value:.0f} students**")
+    next_year = 2026
+    predicted_value = hardcoded_predictions[strand]
+
+    st.write(f"## 🔮 Prediction for {strand} in {next_year}: **{predicted_value} students**")
 
     # ---------------------------------------------------------
-    # CURRENT ENROLLMENT (from uploaded CSV)
+    # CURRENT ENROLLMENT FROM CSV
     # ---------------------------------------------------------
     if historical_df is not None:
 
-        current_count = historical_df[
-            (historical_df["Strand"] == strand) &
-            (historical_df["YearLevel"] == year_level)
-        ].shape[0]
+        current_count = historical_df[historical_df["Strand"] == strand].shape[0]
 
-        st.write(f"### 📍 Current Enrollment ({strand}, YearLevel {year_level}): **{current_count} students**")
+        st.write(f"### 📍 Current Enrollment ({strand}): **{current_count} students**")
 
         # Comparison chart
         fig, ax = plt.subplots(figsize=(5, 4))
         ax.bar(["Current", "Predicted Next Year"], [current_count, predicted_value])
-        ax.set_title(f"Current vs Next Year Prediction\n({strand}, YearLevel {year_level})")
+        ax.set_title(f"Current vs Next Year Prediction\n({strand})")
         ax.set_ylabel("Number of Students")
         st.pyplot(fig)
 
