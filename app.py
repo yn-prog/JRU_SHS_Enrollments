@@ -72,14 +72,13 @@ if st.button("✨ Predict Next Year"):
     # CORRECT INPUT TO MATCH TRAINING DATA
     # ---------------------------------------------------------
     input_df = pd.DataFrame({
-        "YearLevel": [year_level],   
-        "Strand": [strand]
+    "Strand": [strand]
     })
 
     # Model prediction
     predicted_value = model.predict(input_df)[0]
-
-    st.write(f"## 🔮 Prediction for {strand} (Year Level {year_level}) in {next_year}: **{predicted_value:.0f} students**")
+    
+    st.write(f"## 🔮 Prediction for {strand} in {next_year}: **{predicted_value:.0f} students**")
 
     # ---------------------------------------------------------
     # CURRENT ENROLLMENT (from uploaded CSV)
